@@ -2,6 +2,8 @@
   // Remove SMUI imports
   // import Select, { Option } from '@smui/select';
   import ProductForm from './components/ProductForm.svelte';
+  import MultiRetailerForm from './components/MultiRetailerForm.svelte';
+  import DynamicPriceAvailForm from './components/DynamicPriceAvailForm.svelte';
   let selectedProduct = '';
 </script>
 
@@ -15,16 +17,20 @@
   <div class="content">
     <!-- Add placeholder to select -->
     <select id="product-select" bind:value={selectedProduct} class="product-select" required>
-      <option value="" disabled selected>Select a product...</option> <!-- Use selected attribute -->
-      <option value="kerv-kart">KERV Kart Single Retailer</option>
-      <option value="product-2">Product 2</option>
-      <option value="product-3">Product 3</option>
-      <option value="product-4">Product 4</option>
-      <option value="product-5">Product 5</option>
+      <option value="" disabled selected>Select a product...</option>
+      <option value="kerv-kart-single">KERV Kart Single Retailer</option>
+      <option value="kerv-kart-multi">KERV Kart Multi-Retailer</option>
+      <option value="dynamic-price-avail">Dynamic Pricing/Avails</option>
+      <!-- <option value="product-4">Product 4</option> -->
+      <!-- <option value="product-5">Product 5</option> -->
     </select>
 
-    {#if selectedProduct === 'kerv-kart'}
+    {#if selectedProduct === 'kerv-kart-single'}
       <ProductForm />
+    {:else if selectedProduct === 'kerv-kart-multi'}
+      <MultiRetailerForm />
+    {:else if selectedProduct === 'dynamic-price-avail'}
+      <DynamicPriceAvailForm />
     {/if}
   </div>
 </main>

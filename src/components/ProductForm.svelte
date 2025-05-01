@@ -4,106 +4,160 @@
   // import FormField from '@smui/form-field';
   // import Button from '@smui/button';
 
-  let feedActive = null;
-  let dtcLinkActive = null;
-  let clientProvideDtc = null;
-  let feedAccess = null;
-  let dtcLinkNoFeed = null;
+  // State variables for KERV Kart: Single Retailer
+  let feedActive = null; // Q1
+  let haveDtcLink = null; // Q2 (Yes Path)
+  let clientProvideDtc = null; // Q3 (Yes Path -> No)
+  let feedAccess = null; // Q4 (No Path)
+  let clientProvideDtc_NoPath = null; // Q5 (No Path -> Yes)
+  let haveDtcLink_NoPath = null; // Q6 (No Path -> No)
   let finalResult = '';
 
-  $: if (feedActive === 'yes') {
-    if (dtcLinkActive === 'yes') {
-      finalResult = 'Approved: Ops can begin campaign creation process!!';
-    } else if (dtcLinkActive === 'no' && clientProvideDtc === 'yes') {
-      finalResult = 'Alpha Dev Request for DTC Implementation: Engineering -> Ops can begin campaign creation process!!';
-    } else if (dtcLinkActive === 'no' && clientProvideDtc === 'no') {
-      finalResult = 'Offer Dynamic Non-Kerv Kart solution';
+  // Reactive logic for KERV Kart: Single Retailer
+  $: {
+    if (feedActive === 'yes') {
+      if (haveDtcLink === 'yes') {
+        finalResult = 'Approved: Ops can begin campaign creative process';
+      } else if (haveDtcLink === 'no') {
+        if (clientProvideDtc === 'yes') {
+          finalResult = 'Approved: Dev DTC Implementation onboarding required -> Ops can begin campaign creation process'; // Adjusted text slightly for flow
+        } else if (clientProvideDtc === 'no') {
+          finalResult = 'Offer Dynamic Non-KERV Kart Solution';
+        } else {
+          finalResult = ''; // Waiting for Q3
+        }
+      } else {
+        finalResult = ''; // Waiting for Q2
+      }
+    } else if (feedActive === 'no') {
+      if (feedAccess === 'yes') {
+        if (clientProvideDtc_NoPath === 'yes') {
+           finalResult = 'Approved: Ops can begin campaign creative process'; // Q5=Yes
+        } else if (clientProvideDtc_NoPath === 'no'){
+            finalResult = 'Offer Non-KERV Kart Dynamic Solution'; // Q5=No
+        } else {
+             finalResult = ''; // Waiting for Q5
+        }
+      } else if (feedAccess === 'no') {
+        if (haveDtcLink_NoPath === 'yes') {
+          finalResult = 'Approved: Offer DTC CTA for Non-Dynamic Solutions'; // Q6=Yes - added Approved
+        } else if (haveDtcLink_NoPath === 'no') {
+          finalResult = 'Offer standard Non-Dynamic Solution'; // Q6=No
+        } else {
+           finalResult = ''; // Waiting for Q6
+        }
+      } else {
+        finalResult = ''; // Waiting for Q4
+      }
     } else {
-      finalResult = '';
-    }
-  } else if (feedActive === 'no') {
-    if (feedAccess === 'yes' && dtcLinkNoFeed === 'yes') {
-      finalResult = 'Approved: Ops can begin campaign creation process!!';
-    } else if (feedAccess === 'yes' && dtcLinkNoFeed === 'no') {
-      finalResult = 'Offer Non-Kerv Kart Dynamic Solution';
-    } else if (feedAccess === 'no' && dtcLinkNoFeed === 'yes') {
-      finalResult = 'Offer DTC CTA for Non-Dynamic Solutions';
-    } else if (feedAccess === 'no' && dtcLinkNoFeed === 'no') {
-      finalResult = 'Offer standard Non-Dynamic Solution';
-    } else {
-      finalResult = '';
+      finalResult = ''; // Waiting for Q1
     }
   }
 
   function resetForm() {
-    feedActive = dtcLinkActive = clientProvideDtc = feedAccess = dtcLinkNoFeed = null;
+    feedActive = haveDtcLink = clientProvideDtc = feedAccess = clientProvideDtc_NoPath = haveDtcLink_NoPath = null;
     finalResult = '';
   }
 </script>
 
 <form on:submit|preventDefault class="product-form">
+  <!-- Q1 -->
   {#if feedActive === null}
     <fieldset>
-      <legend>Do we have an Active Product Catalog Feed?</legend>
+      <legend>Do we have an Active Product Catalog Feed?</legend> <!-- Exact Text -->
       <div class="radio-option">
-        <input type="radio" bind:group={feedActive} value="yes" id="feedActiveYes" />
-        <label for="feedActiveYes">Yes</label>
+        <input type="radio" bind:group={feedActive} value="yes" id="srFeedActiveYes" />
+        <label for="srFeedActiveYes">Yes</label>
       </div>
       <div class="radio-option">
-        <input type="radio" bind:group={feedActive} value="no" id="feedActiveNo" />
-        <label for="feedActiveNo">No</label>
-      </div>
-    </fieldset>
-  {:else if feedActive === 'yes' && dtcLinkActive === null}
-    <fieldset>
-      <legend>Do we have a Direct-to-Cart Sample link?</legend>
-      <div class="radio-option">
-        <input type="radio" bind:group={dtcLinkActive} value="yes" id="dtcLinkActiveYes" />
-        <label for="dtcLinkActiveYes">Yes</label>
-      </div>
-      <div class="radio-option">
-        <input type="radio" bind:group={dtcLinkActive} value="no" id="dtcLinkActiveNo" />
-        <label for="dtcLinkActiveNo">No</label>
-      </div>
-    </fieldset>
-  {:else if feedActive === 'yes' && dtcLinkActive === 'no' && clientProvideDtc === null}
-    <fieldset>
-       <legend>Is the Client able to provide Direct-to-Cart Sample Link?</legend>
-      <div class="radio-option">
-        <input type="radio" bind:group={clientProvideDtc} value="yes" id="clientProvideDtcYes" />
-        <label for="clientProvideDtcYes">Yes</label>
-      </div>
-      <div class="radio-option">
-        <input type="radio" bind:group={clientProvideDtc} value="no" id="clientProvideDtcNo" />
-        <label for="clientProvideDtcNo">No</label>
-      </div>
-    </fieldset>
-  {:else if feedActive === 'no' && feedAccess === null}
-    <fieldset>
-      <legend>Is the client able to provide access to Product Catalog Feed?</legend>
-      <div class="radio-option">
-        <input type="radio" bind:group={feedAccess} value="yes" id="feedAccessYes" />
-        <label for="feedAccessYes">Yes</label>
-      </div>
-      <div class="radio-option">
-        <input type="radio" bind:group={feedAccess} value="no" id="feedAccessNo" />
-        <label for="feedAccessNo">No</label>
-      </div>
-    </fieldset>
-  {:else if feedActive === 'no' && feedAccess !== null && dtcLinkNoFeed === null}
-    <fieldset>
-      <legend>Do we have a Direct-to-Cart Sample link?</legend>
-      <div class="radio-option">
-        <input type="radio" bind:group={dtcLinkNoFeed} value="yes" id="dtcLinkNoFeedYes" />
-        <label for="dtcLinkNoFeedYes">Yes</label>
-      </div>
-      <div class="radio-option">
-        <input type="radio" bind:group={dtcLinkNoFeed} value="no" id="dtcLinkNoFeedNo" />
-        <label for="dtcLinkNoFeedNo">No</label>
+        <input type="radio" bind:group={feedActive} value="no" id="srFeedActiveNo" />
+        <label for="srFeedActiveNo">No</label>
       </div>
     </fieldset>
   {/if}
 
+  <!-- Path A: feedActive = yes -->
+  {#if feedActive === 'yes'}
+    <!-- Q2 -->
+    {#if haveDtcLink === null}
+      <fieldset>
+        <legend>Do we have a Direct-to-Cart Sample Link?</legend> <!-- Exact Text -->
+        <div class="radio-option">
+          <input type="radio" bind:group={haveDtcLink} value="yes" id="srHaveDtcYes" />
+          <label for="srHaveDtcYes">Yes</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" bind:group={haveDtcLink} value="no" id="srHaveDtcNo" />
+          <label for="srHaveDtcNo">No</label>
+        </div>
+      </fieldset>
+    {/if}
+
+    <!-- Q3 -->
+    {#if haveDtcLink === 'no' && clientProvideDtc === null}
+      <fieldset>
+        <legend>Is the Client able to provide a Direct-to-Cart Sample Link?</legend> <!-- Exact Text -->
+        <div class="radio-option">
+          <input type="radio" bind:group={clientProvideDtc} value="yes" id="srProvideDtcYes" />
+          <label for="srProvideDtcYes">Yes</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" bind:group={clientProvideDtc} value="no" id="srProvideDtcNo" />
+          <label for="srProvideDtcNo">No</label>
+        </div>
+      </fieldset>
+    {/if}
+  {/if}
+
+  <!-- Path B: feedActive = no -->
+  {#if feedActive === 'no'}
+    <!-- Q4 -->
+    {#if feedAccess === null}
+      <fieldset>
+        <legend>Is the client able to provide access to a Product Catalog Feed?</legend> <!-- Exact Text -->
+        <div class="radio-option">
+          <input type="radio" bind:group={feedAccess} value="yes" id="srFeedAccessYes" />
+          <label for="srFeedAccessYes">Yes</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" bind:group={feedAccess} value="no" id="srFeedAccessNo" />
+          <label for="srFeedAccessNo">No</label>
+        </div>
+      </fieldset>
+    {/if}
+
+    <!-- Q5 -->
+    {#if feedAccess === 'yes' && clientProvideDtc_NoPath === null}
+      <fieldset>
+        <legend>Is the Client able to provide a Direct-to-Cart Sample Link</legend> <!-- Exact Text -->
+        <div class="radio-option">
+          <input type="radio" bind:group={clientProvideDtc_NoPath} value="yes" id="srProvideDtcNoPathYes" />
+          <label for="srProvideDtcNoPathYes">Yes</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" bind:group={clientProvideDtc_NoPath} value="no" id="srProvideDtcNoPathNo" />
+          <label for="srProvideDtcNoPathNo">No</label>
+        </div>
+      </fieldset>
+    {/if}
+
+    <!-- Q6 -->
+    {#if feedAccess === 'no' && haveDtcLink_NoPath === null}
+      <fieldset>
+        <legend>Do we have a Direct-to-Cart Sample Link?</legend> <!-- Exact Text -->
+        <div class="radio-option">
+          <input type="radio" bind:group={haveDtcLink_NoPath} value="yes" id="srHaveDtcNoPathYes" />
+          <label for="srHaveDtcNoPathYes">Yes</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" bind:group={haveDtcLink_NoPath} value="no" id="srHaveDtcNoPathNo" />
+          <label for="srHaveDtcNoPathNo">No</label>
+        </div>
+      </fieldset>
+    {/if}
+  {/if}
+
+  <!-- Final Result -->
   {#if finalResult}
     <div class="final-result-box">
       <h2>Result</h2>
